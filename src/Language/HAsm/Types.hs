@@ -1,8 +1,8 @@
 {-# LANGUAGE BangPatterns #-}
-module HasmTypes (
+module Language.HAsm.Types (
   module Data.Word,
   module Data.Int,
-  module X86CPU,
+  module Language.HAsm.X86.CPU,
   -- routines:
   safeHead, int, immToW, immToB, isWord8,
 
@@ -10,10 +10,10 @@ module HasmTypes (
   ParseResult, HasmStmtWithPos, SrcPos(..)
 ) where
 
-import X86CPU
-
 import Data.Word
 import Data.Int
+
+import Language.HAsm.X86.CPU
 
 int :: (Integral a, Num b) => a -> b
 int = fromIntegral

@@ -1,4 +1,4 @@
-module X86Opcodes (
+module Language.HAsm.X86.Opcodes (
   Operation(..),
   OpOperand(..),
   Serializable(..),
@@ -7,18 +7,18 @@ module X86Opcodes (
   SIB, Displacement,
 ) where
 
-import X86CPU
-import HasmTypes
-
 import Data.Word
 import Data.Int
 import Data.Bits
-
 import Data.List (genericLength)
 import Data.Maybe (fromJust)
 import Data.Binary.Put (putWord32le, putWord16le, runPut)
 import Data.ByteString.Lazy (unpack)
 import qualified Data.ByteString as B
+
+import Language.HAsm.X86.CPU
+import Language.HAsm.Types
+
 
 srcModRM :: Register -> [Word8] -> [Word8]
 srcModRM reg (modrm : rest) = (((index reg `shiftL` 3) .|. modrm) : rest)

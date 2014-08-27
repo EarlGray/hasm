@@ -2,10 +2,15 @@ import Data.Word
 import Text.Printf (printf)
 import System.IO (hFlush, stdout)
 
-import HasmTypes
-import HasmParse
-import HasmCodegen
-import X86Opcodes
+--import Language.HAsm.Types
+import Language.HAsm.Parse
+import Language.HAsm.PrettyPrint
+import Language.HAsm.X86.Opcodes (bytecode)
+import Language.HAsm.X86.CPU (Operation(..))
+--import Language.HAsm.Codegen
+--import Language.HAsm.X86.Opcodes
+
+import Language.HAsm.Test
 
 {-
  - main
@@ -28,10 +33,7 @@ mainParseAssemble = do
         --print pstmts
         case assembleFromZero pstmts of
           Left e -> putStrLn $ "Codegen ERROR\n" ++ e
-          Right (lbldb, hbops) -> do
-            putStrLn $ "OK, labels: " ++ show lbldb
-            putStrLn $ "OK, code: "
-            mapM_ print hbops
+          Right res -> putPretty res
     mainParseAssemble
 
 main = mainParseAssemble

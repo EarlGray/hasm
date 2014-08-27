@@ -1,4 +1,4 @@
-module X86CPU where
+module Language.HAsm.X86.CPU where
 
 import Data.Word
 import Data.Int

@@ -1,10 +1,10 @@
-module HasmPretty where
+module Language.HAsm.PrettyPrint where
 
 {- pretty-printing -}
 import Data.List (intercalate)
 import Text.Printf
 
-import HasmTypes
+import Language.HAsm.Types
 
 class PrettyPrintable a where
     pretty :: a -> String

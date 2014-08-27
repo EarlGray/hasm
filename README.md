@@ -1,9 +1,9 @@
 HASM
 ====
 
-HASM is an x86 32-bit assembler which tries to mimic GAS. 
+HASM is an x86 32-bit assembler compatible with GAS.
 
-For now, it supports only few commands and requires input in terms of Haskell types:
+For now, it supports only few commands:
 
     **HASM**> OpPush (OpndReg RegEAX)
     50

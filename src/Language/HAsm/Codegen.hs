@@ -1,22 +1,22 @@
-module HasmCodegen where
+module Language.HAsm.Codegen where
 
 import Data.Word
 import Data.Map ((!))
 import qualified Data.Map as M
-import qualified Control.Arrow as Arr
-import Control.Applicative
-
 import Data.ByteString (ByteString)
 import qualified Data.ByteString as B
-import Numeric (showHex)
 
-import HasmTypes
-import X86Opcodes
-
+import Control.Applicative
 import Control.Exception
-import System.IO.Unsafe (unsafePerformIO)
 import Control.Monad.State
 import Control.Monad.Trans.Error
+import qualified Control.Arrow as Arr
+
+import Numeric (showHex)
+import System.IO.Unsafe (unsafePerformIO)
+
+import Language.HAsm.Types
+import Language.HAsm.X86.Opcodes
 
 unsafeCatchError :: a -> Either ErrorCall a
 unsafeCatchError = unsafePerformIO . try . evaluate

@@ -1,6 +1,5 @@
-module HasmParse where
+module Language.HAsm.Parse where
 
-import Numeric
 import Data.Char
 import Data.Either (lefts, rights)
 import Data.List (intercalate, nub, sort)
@@ -10,11 +9,13 @@ import qualified Control.Arrow as Arr
 import Control.Applicative ((<$>), (<*), liftA2)
 import Control.Monad (when)
 
+import Numeric
+
 import Text.Parsec
 import Text.Parsec.String (Parser)
 
-import HasmTypes
-import X86CPU
+import Language.HAsm.Types
+import Language.HAsm.X86.CPU
 
 hasmParseFile :: FilePath -> IO (Either ParseError ParseResult)
 hasmParseFile fname = hasmParseWithSource fname <$> readFile fname

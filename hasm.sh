@@ -1,8 +1,7 @@
-#!/bin/sh
+#!/bin/bash
 
-EXEC=./hasm
+EXEC=dist/build/hasm/hasm
 
-if which rlwrap >/dev/null
-then exec rlwrap -H .hasm_history $EXEC
-else exec $EXEC
-fi
+RLWRAP=`which rlwrap`
+[[ "$RLWRAP" ]] && RLWRAP="$RLWRAP -H .hasm_history"
+exec $RLWRAP $EXEC

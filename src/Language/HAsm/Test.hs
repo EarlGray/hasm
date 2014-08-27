@@ -1,9 +1,9 @@
-module Main where
+module Language.HAsm.Test where
 
-import HasmTypes
-import HasmParse
-import HasmCodegen
-import HasmPretty
+import Language.HAsm.Types
+import Language.HAsm.Parse
+import Language.HAsm.Codegen
+import Language.HAsm.PrettyPrint
 
 {-
  -  Test Examples
