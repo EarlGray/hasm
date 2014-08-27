@@ -34,7 +34,7 @@ makeModRM0 (OpndReg reg) = [ 0xC0 .|. index reg ]
 makeModRM0 (OpndRM sib displ) =
       case (sib, displ) of
         -- 32-bit memory offset
-        (noSIB, Displ32 dspl) ->
+        ((SIB _ Nothing Nothing), Displ32 dspl) ->
             (useAbsDispl : bytecode dspl)
 
         -- (%reg), NoDisplacement:
@@ -62,15 +62,12 @@ makeModRM0 (OpndRM sib displ) =
             then ((useSIB .|. useDisplL) : 0x24 : bytecode dspl32)
             else ((index reg .|. useDisplL) : bytecode dspl32)
 
-        -- %esp cannot be index, never:
-        ((SIB _ (Just RegESP) (Just base)), _) ->
-            error "%esp cannot be index"
-        -- (%ebp,%ind,sc) -- yet another exception
-        ((SIB sc (Just ind) (Just RegEBP)), NoDispl) ->
-            makeModRM0 (OpndRM (SIB sc (Just ind) (Just RegEBP)) (Displ8 0))
         -- (%base,%ind,sc)
         ((SIB sc (Just ind) (Just base)), NoDispl) ->
-            [useSIB, sibbyte sc ind base]
+            case (ind, base) of
+              (RegESP, _) -> error "%esp cannot be index"  -- %esp cannot be index, never:
+              (_, RegEBP) -> makeModRM0 (OpndRM (SIB sc (Just ind) (Just RegEBP)) (Displ8 0))
+              _ ->           [useSIB, sibbyte sc ind base]
         -- $displ8(%base,%ind,sc)
         ((SIB sc (Just ind) (Just base)), Displ8 dspl8) ->
             ((useSIB .|. useDisplB) : sibbyte sc ind base : bytecode dspl8)
@@ -176,8 +173,8 @@ positionAwareEncoders = [
 -- JE, JA, JAE, JC, J..
 bytesJc bs8 bs32 addr op =
   case op of
-    [OpndRM noSIB (Displ8 moff)]  -> bs8 ++ bytecode moff
-    [OpndRM noSIB (Displ32 moff)] ->
+    [OpndRM (SIB _ Nothing Nothing) (Displ8 moff)]  -> bs8 ++ bytecode moff
+    [OpndRM (SIB _ Nothing Nothing) (Displ32 moff)] ->
         let rel32 = moff - (addr + genericLength bs32 + 4)  -- 4 == length (bytecode displ32)
         in bs32 ++ bytecode rel32
     _ -> []
@@ -313,13 +310,13 @@ bytesMov :: [OpOperand] -> [Word8]
 
 bytesMov [op1, op2] =
   case (op1, op2) of
-    (OpndRM noSIB (Displ32 moffs), OpndReg (RegL RegEAX)) -> (0xa1 : bytecode moffs)
-    (OpndRM noSIB (Displ32 moffs), OpndReg (RegW RegAX)) -> (preLW : 0xa1 : bytecode moffs)
-    (OpndRM noSIB (Displ32 moffs), OpndReg (RegB RegAL)) -> (0xa0 : bytecode moffs)
+    (OpndRM (SIB _ Nothing Nothing) (Displ32 moffs), OpndReg (RegB RegAL)) -> (0xa0 : bytecode moffs)
+    (OpndRM (SIB _ Nothing Nothing) (Displ32 moffs), OpndReg (RegW RegAX)) -> (preLW : 0xa1 : bytecode moffs)
+    (OpndRM (SIB _ Nothing Nothing) (Displ32 moffs), OpndReg (RegL RegEAX)) -> (0xa1 : bytecode moffs)
 
-    (OpndReg (RegL RegEAX), OpndRM noSIB (Displ32 moffs)) -> (0xa3 : bytecode moffs)
-    (OpndReg (RegW RegAX),  OpndRM noSIB (Displ32 moffs)) -> (preLW : 0xa3 : bytecode moffs)
-    (OpndReg (RegB RegAL),  OpndRM noSIB (Displ32 moffs)) -> (0xa2 : bytecode moffs)
+    (OpndReg (RegL RegEAX), OpndRM (SIB _ Nothing Nothing) (Displ32 moffs)) -> (0xa3 : bytecode moffs)
+    (OpndReg (RegW RegAX),  OpndRM (SIB _ Nothing Nothing) (Displ32 moffs)) -> (preLW : 0xa3 : bytecode moffs)
+    (OpndReg (RegB RegAL),  OpndRM (SIB _ Nothing Nothing) (Displ32 moffs)) -> (0xa2 : bytecode moffs)
 
     (OpndReg (RegL _), OpndReg (RegL _)) -> (0x89 : makeModRM op1 op2)
     (OpndReg (RegW _), OpndReg (RegW _)) -> (preLW : 0x89 : makeModRM op1 op2)
@@ -398,8 +395,8 @@ bytesJmp :: Word32 -> [OpOperand] -> [Word8]
 bytesJmp addr [op] =
     case op of
       -- treat displacement as offset from EIP
-      OpndRM noSIB (Displ8 moffs8) -> (0xeb : bytecode moffs8)
-      OpndRM noSIB (Displ32 moffs) ->
+      OpndRM (SIB _ Nothing Nothing) (Displ8 moffs8) -> (0xeb : bytecode moffs8)
+      OpndRM (SIB _ Nothing Nothing) (Displ32 moffs) ->
         let rel32 = (moffs - (addr + 5))    -- 5 == length (0xe9 : displ32)
         in (0xe9 : bytecode rel32)
       -- treat ModRM/register value as absolute indirect offset
