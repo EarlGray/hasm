@@ -1,0 +1,6 @@
+#!/bin/bash
+
+SRCF=$1
+OBJF=${SRCF/\.s/\.o}
+
+gcc -m32 -c $SRCF -o $OBJF && objdump -d $OBJF

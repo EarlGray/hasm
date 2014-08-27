@@ -9,7 +9,7 @@ main:
     movl $1, %esi
     movl $31, %edi
 
-L1:
+.L1:
     push %esi
     push $format
     call printf
@@ -18,7 +18,7 @@ L1:
     addl %esi, %esi
     decl %edi
     
-    jnz L1
+    jnz .L1
         
     pop %edi
     pop %esi
