@@ -26,26 +26,30 @@ hasmParseWithSource fname ss = parse (asmfile <* eof) fname ss
 asmfile :: Parser ParseResult
 asmfile = do
   blanklines
+  --mbasmspaces
   many $ do
     pos <- getPosition
     stmt <- asmstmt
+    blanklines
+    --mbasmspaces
     return (stmt, toHasmPos pos)
 
 asmstmt :: Parser HasmStatement
-asmstmt = try asmdir <|> try asmlabel <|> asmop <?> "assembly statement"
+asmstmt = try asmlabel <|> try asmdir <|> asmop <?> "assembly statement"
 
-blanklines = mbasmspaces >> many ((linecomment <|> newline) >> mbasmspaces)
+blanklines = many ((linecomment <|> newline) >> mbasmspaces) >> return ()
 linecomment = do
   char '#'; many (noneOf "\n"); newline
 
 dirchar = letter <|> char '_'
-idschar = letter <|> oneOf "_"
-idchar = idschar <|> digit <|> oneOf ".$"
+idschar = letter <|> oneOf "._$"
+idchar = idschar <|> digit
 
 symbol = cons idschar (many idchar)
 
-endstmt = (mbasmspaces >> oneOf ";\n" >> blanklines >> return ()) <|> eof
-asmspaces = many1 (oneOf " \t")
+endstmt = mbasmspaces >> optional ((oneOf ";" >> return ()) <|> eof)
+endlbl = (mbasmspaces >> blanklines) <|> eof
+
 mbasmspaces = many (oneOf " \t")
 
 cons a b = liftA2 (:) a b
@@ -56,14 +60,14 @@ regname = cons letter (many1 opchar)
 asmdir = do
   char '.'
   dir <- many1 dirchar
-  optional asmspaces
-  dirargs <- sepBy (many1 $ noneOf "\n,") (char ',' >> optional asmspaces)
+  mbasmspaces
+  dirargs <- sepBy (many1 $ noneOf "\n,") (char ',' >> mbasmspaces)
   endstmt
   case readDirective dir dirargs of
     Right d -> return $ HasmStDirective d
     Left e -> parserFail e
 
-asmlabel = HasmStLabel <$> (symbol <* char ':' <* optional blanklines) <?> "label"
+asmlabel = HasmStLabel <$> (symbol <* char ':' <* endlbl) <?> "label"
 
 asmop = do
   op <- opcode
@@ -131,7 +135,6 @@ asmsib = do
       then return $ SIB (fromIntegral scale) mbInd mbBase
       else fail "Scale is not 1,2,4,8"
 
-
 asmregister = do
   char '%'
   reg <- regname
@@ -146,7 +149,7 @@ asmgpregister = do
 {-- Number literals --}
 asmimm = do
   char '$'
-  readIntegerLit
+  try readIntegerLit <|> (ImmS <$> symbol) <?> "integer or symbol in immediate value"
 
 readIntegerLit = (ImmL . fromIntegral) <$> (intneg <|> intparse <?> "number")
 
@@ -201,6 +204,20 @@ readDirective dir args =
       in case lefts eiSyms of
           [] -> Right $ DirGlobal (rights eiSyms)
           (err:_) -> Left $ "failed to parse symbol " ++ show err
+    "extern" ->
+      let eiSyms = map (parse (symbol <* eof) "") args
+      in case lefts eiSyms of
+          [] -> Right $ DirExtern (rights eiSyms)
+          (err:_) -> Left $ "failed to parse symbol " ++ show err
+    "file" ->
+      case args of
+        [fname] -> Right $ DirFile fname
+        _ -> Left ".file takes only one string parameter"
+    "type" ->
+      case args of
+        [sym, ty] -> Right $ DirType sym ty
+        _ -> Left ".type takes two arguments: .type <sym>, <type>"
+    --"asciz" ->
     _ -> Left $ "Unknown directive: " ++ dir ++ " " ++ intercalate "," args
 
 
@@ -213,9 +230,11 @@ opsyntax = [
   ("add",   (OpAdd,  [2],   "lwb")),
   ("ret",   (OpRet,  [0,1], "w"  )),
   ("push",  (OpPush, [1],   "lwb")),
+  ("pop",   (OpPop,  [1],   "lwb")),
   ("cmp",   (OpCmp,  [2],   "lwb")),
   ("int",   (OpInt,  [1],   "b"  )),
   ("jmp",   (OpJmp,  [1],   "lwb")),
+  ("call",  (OpCall, [1],   "l"  )),
   ("imul",  (OpIMul, [1,2,3],"lwb")),
 
   ("je",    (OpJe,   [1],   ""   )),  -- ZF=1

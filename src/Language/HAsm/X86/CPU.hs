@@ -4,8 +4,6 @@ import Data.Word
 import Data.Int
 import Data.Maybe (fromJust)
 
-data ImmValue = ImmL Word32 | ImmW Word16 | ImmB Word8 deriving (Show, Read, Eq)
-
 data Register
     = RegL GPRegister | RegW GPRegisterW
     | RegB GPRegisterB | SReg SegRegister
@@ -79,11 +77,13 @@ instance Indexable Register where
  -}
 type Symbol = String
 
+data ImmValue = ImmL Word32 | ImmW Word16 | ImmB Word8 | ImmS Symbol deriving (Show, Read, Eq)
+
 data Instr = OpPush | OpRet | OpLRet | OpInt | OpAdd | OpMov | OpJmp
            | OpCmp  | OpJe  | OpJne  | OpJa  | OpJna | OpJnae| OpJge 
            | OpJae  | OpJl  | OpJle  | OpJg  | OpJnp | OpJp  | OpJno  
            | OpJo   | OpJs  | OpJns  | OpJc  | OpJnc | OpJbe | OpJecxz
-           | OpIMul
+           | OpIMul | OpCall| OpPop
   deriving (Show, Read, Eq, Enum)
 
 data Operation = Operation Instr [OpOperand]

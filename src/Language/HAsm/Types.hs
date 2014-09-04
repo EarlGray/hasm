@@ -69,7 +69,7 @@ data Directive
   | DirSize Symbol Int  -- set symbol size
   | DirType Symbol String -- set symbol type
   -- symbol visibility:
-  | DirExtern
+  | DirExtern [Symbol]
   | DirGlobal [Symbol]    -- .global/.globl
   | DirHidden [Symbol]
   | DirLocal [Symbol]

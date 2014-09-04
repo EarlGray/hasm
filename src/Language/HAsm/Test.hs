@@ -14,6 +14,7 @@ immb = OpndImm . ImmB
 label l = OpndRM noSIB (DisplLabel l)
 
 instr i = HasmStInstr [] . Operation i
+dir = HasmStDirective
 
 regdspl b d = OpndRM (SIB 1 Nothing (Just b)) d
 

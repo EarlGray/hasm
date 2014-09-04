@@ -159,7 +159,7 @@ encoders = [
   (OpCmp, bytesCmp), (OpIMul, bytesIMul) ]
 
 positionAwareEncoders = [
-  (OpJmp, bytesJmp),
+  (OpJmp, bytesJmp), (OpCall, bytesCall),
   (OpJa,  bytesJc [0x77] [0x0f, 0x87]), (OpJna,  bytesJc [0x76] [0x0f, 0x86]),
   (OpJc,  bytesJc [0x72] [0x0f, 0x82]), (OpJnc,  bytesJc [0x73] [0x0f, 0x83]),
   (OpJe,  bytesJc [0x74] [0x0f, 0x84]), (OpJne,  bytesJc [0x75] [0x0f, 0x85]),
@@ -389,6 +389,18 @@ bytesCmp [op1, op2] =
 
     _ -> error $ "failed to assemble operands: " ++ show op1 ++ ", " ++ show op2
 bytesCmp _ = []
+
+-- CALL
+bytesCall :: Word32 -> [OpOperand] -> [Word8]
+bytesCall _ _ = error "bytesCall : TODO"
+{-
+bytesCall addr [op] =
+    case op of
+      OpndRM (SIB _ Nothing Nothing) (Displ32 moff32) ->
+        let rel32 = (moff32 - (addr + 5))
+        in (0xe8 : makeModRM (OpndRM (SIB _ Not
+      OpndRM (
+-}
 
 -- JMP
 bytesJmp :: Word32 -> [OpOperand] -> [Word8]
