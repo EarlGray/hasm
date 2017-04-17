@@ -1,6 +1,6 @@
 #!/bin/bash
 
-EXEC=dist/build/hasm/hasm
+EXEC="stack exec hasm"
 
 RLWRAP=`which rlwrap`
 [[ "$RLWRAP" ]] && RLWRAP="$RLWRAP -H .hasm_history"

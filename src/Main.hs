@@ -1,6 +1,7 @@
 import Data.Word
 import Text.Printf (printf)
 import System.IO (hFlush, stdout)
+import System.Environment as Env
 
 --import Language.HAsm.Types
 import Language.HAsm.Parse
@@ -36,4 +37,21 @@ mainParseAssemble = do
           Right res -> putPretty res
     mainParseAssemble
 
-main = mainParseAssemble
+mainProcessFile fpath = do
+    file <- readFile fpath
+    case hasmParseWithSource file file of
+      Left e -> putStrLn $ "Syntax ERROR\n" ++ show e
+      Right pstmts -> do
+        case assembleFromZero pstmts of
+          Left e -> putStrLn $ "Codegen ERROR\n" ++ show e
+          Right res -> putPretty res
+
+main = do
+    args <- Env.getArgs
+    case args of
+      [] ->
+          mainParseAssemble
+      [fpath] ->
+          mainProcessFile fpath
+      _ ->
+          putStrLn "???"

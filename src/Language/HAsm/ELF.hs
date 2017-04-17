@@ -37,7 +37,7 @@ elf_magic = B.pack $ take eiNIdent $ magic ++ repeat 0x00
 
 putElfHeader = do
      putByteString elf_magic
-  
+
 
 putElf :: Put
 putElf = do

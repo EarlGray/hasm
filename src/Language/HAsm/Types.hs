@@ -4,9 +4,10 @@ module Language.HAsm.Types (
   module Data.Int,
   module Language.HAsm.X86.CPU,
   -- routines:
-  safeHead, int, immToW, immToB, isWord8,
+  safeHead, int, toInt32,
+  immToW, immToB, isWord8,
 
-  HasmStatement(..), Directive(..), 
+  HasmStatement(..), Directive(..),
   ParseResult, HasmStmtWithPos, SrcPos(..)
 ) where
 
@@ -17,6 +18,9 @@ import Language.HAsm.X86.CPU
 
 int :: (Integral a, Num b) => a -> b
 int = fromIntegral
+
+toInt32 :: Integral a => a -> Int32
+toInt32 = fromIntegral
 
 isWord8 :: ImmValue -> Bool
 isWord8 (ImmB imm) = True
@@ -42,11 +46,11 @@ safeHead (s:_) = Just s
 data HasmStatement
   = HasmStLabel String
   | HasmStDirective Directive
-  | HasmStInstr [OpPrefix] Operation 
+  | HasmStInstr [OpPrefix] Operation
   deriving (Show, Read, Eq)
 
 data SrcPos = SrcPos String !Int !Int deriving (Eq, Ord)
-            
+
 instance Show SrcPos where
   show (SrcPos src line col) = src ++ ":" ++ show line ++ ":" ++ show col
 
@@ -90,9 +94,9 @@ data Directive
   | DirDim
   | DirEndef
   -- conditional assembly directives:
-  | DirIf Int 
+  | DirIf Int
   | DirIfdef Symbol
-  | DirIfblank String 
+  | DirIfblank String
   | DirIfcmp String String  -- .ifc/.ifeqs
   | DirIfeq Int Int
   | DirIfge Int Int
@@ -101,7 +105,7 @@ data Directive
   | DirElseIf
   | DirEndif
   -- listing directives:
-  | DirErr  
+  | DirErr
   | DirError String
   | DirEnd  -- marks end of the assembly file, does not process anything from this point
   | DirEject  -- generate page break on assembly listings
@@ -129,5 +133,5 @@ data CFIInfo
   | CFIRememberState
   | CFIRetColumn Int
   | CFISignalFrame
-  | CFIEscape 
+  | CFIEscape
   deriving (Show, Read, Eq)

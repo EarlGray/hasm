@@ -10,7 +10,7 @@ class PrettyPrintable a where
     pretty :: a -> String
 
 instance PrettyPrintable HasmStatement where
-  pretty stmt = 
+  pretty stmt =
     case stmt of
       HasmStLabel lbl -> lbl ++ ":"
       HasmStDirective dir ->
@@ -24,7 +24,7 @@ instance PrettyPrintable HasmStatement where
       HasmStInstr prefs oper ->
           let s_prefs = intercalate " " (map pretty prefs)
           in s_prefs ++ " " ++ pretty oper
-         
+
 instance PrettyPrintable OpPrefix where
     pretty pre =
         case lookup pre dict of
@@ -35,9 +35,9 @@ instance PrettyPrintable OpPrefix where
                      (PreREPNZ, "repnz"), (PreREP, "rep"), (PreREPE, "repe"), (PreREPZ, "repz") ]
 
 instance PrettyPrintable Operation where
-    pretty (Operation instr opnds) = 
+    pretty (Operation instr opnds) =
         pretty instr ++ " " ++ intercalate ", " (map pretty opnds)
-    
+
 instance PrettyPrintable Instr where
     pretty op =
       case lookup op dict of
@@ -59,7 +59,7 @@ instance PrettyPrintable OpOperand where
     pretty (OpndReg reg) = pretty reg
 
 instance PrettyPrintable Register where
-    pretty reg = 
+    pretty reg =
       case reg of
         RegL reg -> pretty reg
         RegW reg -> pretty reg
@@ -67,7 +67,7 @@ instance PrettyPrintable Register where
         SReg sreg -> pretty sreg
 
 instance PrettyPrintable GPRegister where
-    pretty reg = 
+    pretty reg =
       case lookup reg (zip (enumAll :: [GPRegister]) gpRegNames) of
         Just s -> "%" ++ s
         Nothing -> error "No pretty name for " ++ show reg
@@ -91,9 +91,9 @@ instance PrettyPrintable SegRegister where
         Nothing -> error "No pretty name for " ++ show sreg
 
 instance PrettyPrintable ImmValue where
-  pretty (ImmL imm) = show ((fromIntegral imm) :: Int32)
-  pretty (ImmW imm) = show ((fromIntegral imm) :: Int32)
-  pretty (ImmB imm) = show ((fromIntegral imm) :: Int32)
+  pretty (ImmL imm) = show $ toInt32 imm
+  pretty (ImmW imm) = show $ toInt32 imm
+  pretty (ImmB imm) = show $ toInt32 imm
 
 instance PrettyPrintable SIB where
   pretty (SIB _ Nothing  Nothing) = ""
@@ -106,23 +106,27 @@ instance PrettyPrintable Displacement where
   pretty (DisplLabel lbl) = lbl
   pretty (Displ32 dspl) = show dspl
   pretty (Displ8  dspl) = show dspl
-  
+
 
 {-
  -  Pretty print the results
  -}
+type Address = Word32
+
 hasmPrettyPrint :: Word32 -> [(HasmStatement, SrcPos, [Word8])] -> String
 hasmPrettyPrint _ [] = "\n"
-hasmPrettyPrint addr ((stmt, pos, bs) : stmts) = 
+hasmPrettyPrint addr ((stmt, pos, bs) : stmts) =
   case stmt of
-    HasmStInstr prefs oper -> 
+    HasmStInstr prefs oper ->
       let s_addr = printf "%08x:   " addr
-          s_bytes = intercalate " " (map (printf "%02x ") bs) 
-          s_stmt = pretty stmt
-          s_rest = hasmPrettyPrint (addr + (fromIntegral $ length bs)) stmts
-      in s_addr ++ s_bytes ++  "\t;; " ++ s_stmt ++ "\n" ++ s_rest
+          s_bytes = intercalate " " (map (printf "%02x ") bs)
+          s_opcodes = s_addr ++ s_bytes ++ "    "
+          s_space = replicate (40 - length s_opcodes) ' '
+          s_stmt = ";; " ++ pretty stmt
+          s_rest = hasmPrettyPrint (addr + (int $ length bs)) stmts
+      in s_opcodes ++ s_space ++ s_stmt ++ "\n" ++ s_rest
     HasmStLabel lbl -> show lbl ++ ":\n" ++ hasmPrettyPrint addr stmts
     HasmStDirective dir -> "." ++ show dir ++ "\n" ++ hasmPrettyPrint addr stmts
 
-putPretty = putStr . hasmPrettyPrint 0 
+putPretty = putStr . hasmPrettyPrint 0
 

@@ -60,8 +60,8 @@ withTestSrc = map (\s -> (s, SrcPos "test.s" 0 0))
 assembleStmts :: [HasmStatement] -> [(HasmStatement, SrcPos, [Word8])]
 assembleStmts = fromRight . assembleFromZero . withTestSrc
 
-testParse s        = fromRight $ hasmParseWithSource "~" s 
-testAssemble stmts = fromRight $ assembleFromZero stmts 
+testParse s        = fromRight $ hasmParseWithSource "~" s
+testAssemble stmts = fromRight $ assembleFromZero stmts
 
 test = testAssemble . testParse
 testcmds = testAssemble . withTestSrc

@@ -66,7 +66,7 @@ instance Indexable SegRegister where
 
 instance Indexable Register where
     index r =
-       case r of 
+       case r of
          RegL reg -> index reg
          RegW reg -> index reg
          RegB reg -> index reg
@@ -80,8 +80,8 @@ type Symbol = String
 data ImmValue = ImmL Word32 | ImmW Word16 | ImmB Word8 | ImmS Symbol deriving (Show, Read, Eq)
 
 data Instr = OpPush | OpRet | OpLRet | OpInt | OpAdd | OpMov | OpJmp
-           | OpCmp  | OpJe  | OpJne  | OpJa  | OpJna | OpJnae| OpJge 
-           | OpJae  | OpJl  | OpJle  | OpJg  | OpJnp | OpJp  | OpJno  
+           | OpCmp  | OpJe  | OpJne  | OpJa  | OpJna | OpJnae| OpJge
+           | OpJae  | OpJl  | OpJle  | OpJg  | OpJnp | OpJp  | OpJno
            | OpJo   | OpJs  | OpJns  | OpJc  | OpJnc | OpJbe | OpJecxz
            | OpIMul | OpCall| OpPop
   deriving (Show, Read, Eq, Enum)
